@@ -1,0 +1,57 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FocusGarden — grow what matters</title>
+  <link rel="stylesheet" href="{% static 'garden/style.css' %}">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="intro">
+      <p class="eyebrow">A gentle daily ritual</p>
+      <h1>Grow what<br><em>matters.</em></h1>
+      <p class="lede">Turn small intentions into a flourishing garden. Each completed task plants a flower.</p>
+      <div class="progress-copy"><span>{{ progress }}% tended</span><span>{{ total }} intention{{ total|pluralize }}</span></div>
+      <div class="progress"><span style="width: {{ progress }}%"></span></div>
+    </section>
+
+    <section class="card task-card">
+      <h2>Today's intentions</h2>
+      <form method="post" class="add-form">
+        {% csrf_token %}
+        {{ form.title }}
+        <button type="submit" aria-label="Add task">+</button>
+      </form>
+      {% if form.title.errors %}<p class="error">Please keep task names under 120 characters.</p>{% endif %}
+      <div class="task-list">
+      {% for task in tasks %}
+        <article class="task {% if task.completed %}done{% endif %}">
+          <form method="post" action="{% url 'garden:toggle_task' task.id %}">
+            {% csrf_token %}
+            <button class="check" type="submit" aria-label="Toggle {{ task.title }}">{% if task.completed %}✓{% endif %}</button>
+          </form>
+          <span>{{ task.title }}</span>
+          <form method="post" action="{% url 'garden:delete_task' task.id %}">
+            {% csrf_token %}<button class="delete" type="submit" aria-label="Delete {{ task.title }}">×</button>
+          </form>
+        </article>
+      {% empty %}
+        <p class="empty">Your garden is waiting for its first seed.</p>
+      {% endfor %}
+      </div>
+    </section>
+
+    <section class="card garden-card">
+      <div class="garden-heading"><div><p class="eyebrow">Your progress, in bloom</p><h2>Today’s garden</h2></div><span class="sun">☀</span></div>
+      <div class="sky"><div class="cloud cloud-one"></div><div class="cloud cloud-two"></div></div>
+      <div class="flowers">
+        {% for flower in flowers %}<div class="flower f{{ forloop.counter0|divisibleby:2 }}" title="{{ flower.title }}"><i>✿</i><b></b></div>{% endfor %}
+        {% if not flowers %}<p class="garden-empty">Complete an intention to see your first flower.</p>{% endif %}
+      </div>
+      <div class="ground"></div>
+    </section>
+  </main>
+</body>
+</html>
